@@ -530,7 +530,7 @@ func (service *OIDCService) GenerateAccessToken(c *gin.Context, client config.OI
 	tokenExpiresAt := time.Now().Add(time.Duration(service.config.SessionExpiry) * time.Second).Unix()
 
 	// Refresh token lives double the time of an access token but can't be used to access userinfo
-	refrshTokenExpiresAt := time.Now().Add(time.Duration(service.config.SessionExpiry*2) * time.Second).Unix()
+	refreshTokenExpiresAt := time.Now().Add(time.Duration(service.config.SessionExpiry*2) * time.Second).Unix()
 
 	tokenResponse := TokenResponse{
 		AccessToken:  accessToken,
@@ -548,7 +548,7 @@ func (service *OIDCService) GenerateAccessToken(c *gin.Context, client config.OI
 		ClientID:              client.ClientID,
 		Scope:                 codeEntry.Scope,
 		TokenExpiresAt:        tokenExpiresAt,
-		RefreshTokenExpiresAt: refrshTokenExpiresAt,
+		RefreshTokenExpiresAt: refreshTokenExpiresAt,
 		Nonce:                 codeEntry.Nonce,
 		CodeHash:              codeEntry.CodeHash,
 	})
@@ -597,7 +597,7 @@ func (service *OIDCService) RefreshAccessToken(c *gin.Context, refreshToken stri
 	newRefreshToken := utils.GenerateString(32)
 
 	tokenExpiresAt := time.Now().Add(time.Duration(service.config.SessionExpiry) * time.Second).Unix()
-	refrshTokenExpiresAt := time.Now().Add(time.Duration(service.config.SessionExpiry*2) * time.Second).Unix()
+	refreshTokenExpiresAt := time.Now().Add(time.Duration(service.config.SessionExpiry*2) * time.Second).Unix()
 
 	tokenResponse := TokenResponse{
 		AccessToken:  accessToken,
@@ -612,7 +612,7 @@ func (service *OIDCService) RefreshAccessToken(c *gin.Context, refreshToken stri
 		AccessTokenHash:       service.Hash(accessToken),
 		RefreshTokenHash:      service.Hash(newRefreshToken),
 		TokenExpiresAt:        tokenExpiresAt,
-		RefreshTokenExpiresAt: refrshTokenExpiresAt,
+		RefreshTokenExpiresAt: refreshTokenExpiresAt,
 		RefreshTokenHash_2:    service.Hash(refreshToken), // that's the selector, it's not stored in the db
 	})
 

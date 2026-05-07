@@ -84,6 +84,7 @@ type AuthServiceConfig struct {
 	SessionCookieName  string
 	IP                 model.IPConfig
 	LDAPGroupsCacheTTL int
+	SubdomainsEnabled  bool
 }
 
 type AuthService struct {
@@ -395,6 +396,12 @@ func (auth *AuthService) DeleteSession(ctx context.Context, uuid string) (*http.
 
 	if err != nil {
 		tlog.App.Warn().Err(err).Msg("Failed to delete session from database, proceeding to clear cookie anyway")
+	}
+
+	err = auth.queries.DeleteSession(ctx, uuid)
+
+	if err != nil {
+		return nil, err
 	}
 
 	return &http.Cookie{
@@ -837,4 +844,11 @@ func (auth *AuthService) ClearRateLimitsTestingOnly() {
 		auth.lockdownCancelFunc()
 	}
 	auth.loginMutex.Unlock()
+}
+
+func (auth *AuthService) getCookieDomain() string {
+	if auth.config.SubdomainsEnabled {
+		return "." + auth.config.CookieDomain
+	}
+	return auth.config.CookieDomain
 }

@@ -22,7 +22,7 @@ func GetCookieDomain(u string) (string, error) {
 	host := parsed.Hostname()
 
 	if netIP := net.ParseIP(host); netIP != nil {
-		return "", errors.New("IP addresses not allowed")
+		return "", errors.New("ip addresses not allowed")
 	}
 
 	parts := strings.Split(host, ".")
@@ -45,6 +45,27 @@ func GetCookieDomain(u string) (string, error) {
 	}
 
 	return domain, nil
+}
+
+func GetStandaloneCookieDomain(u string) (string, error) {
+	parsed, err := url.Parse(u)
+	if err != nil {
+		return "", err
+	}
+
+	host := parsed.Hostname()
+
+	if netIP := net.ParseIP(host); netIP != nil {
+		return "", errors.New("ip addresses not allowed")
+	}
+
+	parts := strings.Split(host, ".")
+
+	if len(parts) < 2 {
+		return "", errors.New("invalid app url")
+	}
+
+	return host, nil
 }
 
 func ParseFileToLine(content string) string {

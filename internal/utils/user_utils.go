@@ -13,7 +13,7 @@ func ParseUsers(usersStr []string, userAttributes map[string]model.UserAttribute
 	var users []model.LocalUser
 
 	if len(usersStr) == 0 {
-		return &users, nil
+		return nil, nil
 	}
 
 	for _, user := range usersStr {
@@ -34,32 +34,9 @@ func ParseUsers(usersStr []string, userAttributes map[string]model.UserAttribute
 }
 
 func GetUsers(usersCfg []string, usersPath string, userAttributes map[string]model.UserAttributes) (*[]model.LocalUser, error) {
-	var usersStr []string
-
-	if len(usersCfg) == 0 && usersPath == "" {
-		return nil, nil
-	}
-
-	if len(usersCfg) > 0 {
-		usersStr = append(usersStr, usersCfg...)
-	}
-
-	if usersPath != "" {
-		contents, err := ReadFile(usersPath)
-
-		if err != nil {
-			return nil, err
-		}
-
-		lines := strings.SplitSeq(contents, "\n")
-
-		for line := range lines {
-			lineTrimmed := strings.TrimSpace(line)
-			if lineTrimmed == "" {
-				continue
-			}
-			usersStr = append(usersStr, lineTrimmed)
-		}
+	usersStr, err := GetStringList(usersCfg, usersPath)
+	if err != nil {
+		return nil, err
 	}
 
 	return ParseUsers(usersStr, userAttributes)

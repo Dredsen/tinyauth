@@ -31,6 +31,7 @@ type BootstrapApp struct {
 		oauthSessionCookieName string
 		localUsers             *[]model.LocalUser
 		oauthProviders         map[string]model.OAuthServiceConfig
+		oauthWhitelist         []string
 		configuredProviders    []controller.Provider
 		oidcClients            []model.OIDCClientConfig
 	}
@@ -70,6 +71,13 @@ func (app *BootstrapApp) Setup() error {
 	}
 
 	app.context.localUsers = users
+
+	oauthWhitelist, err := utils.GetStringList(app.config.OAuth.Whitelist, app.config.OAuth.WhitelistFile)
+	if err != nil {
+		return err
+	}
+
+	app.context.oauthWhitelist = oauthWhitelist
 
 	// Setup OAuth providers
 	app.context.oauthProviders = app.config.OAuth.Providers

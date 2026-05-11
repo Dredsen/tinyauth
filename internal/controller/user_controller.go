@@ -189,6 +189,9 @@ func (controller *UserController) loginHandler(c *gin.Context) {
 
 	if search.Type == model.UserLDAP {
 		sessionCookie.Provider = "ldap"
+		if search.Email != "" {
+			sessionCookie.Email = search.Email
+		}
 	}
 
 	cookie, err := controller.auth.CreateSession(c, sessionCookie)

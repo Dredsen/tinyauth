@@ -773,7 +773,7 @@ func (auth *AuthService) ensureOAuthSessionLimit() {
 	auth.oauthMutex.Lock()
 	defer auth.oauthMutex.Unlock()
 
-	if len(auth.oauthPendingSessions) < MaxOAuthPendingSessions {
+	if len(auth.oauthPendingSessions) <= MaxOAuthPendingSessions {
 		return
 	}
 

@@ -192,23 +192,17 @@ func NewOIDCService(
 		}
 	}
 
-	_, err = os.Stat(config.OIDC.PublicKeyPath)
-	if errors.Is(err, os.ErrNotExist) {
-		der := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
-		if der == nil {
-			return nil, errors.New("failed to marshal public key")
-		}
-		encoded := pem.EncodeToMemory(&pem.Block{
-			Type:  "RSA PUBLIC KEY",
-			Bytes: der,
-		})
-		log.App.Trace().Str("type", "RSA PUBLIC KEY").Msg("Generated public RSA key")
-		err = os.WriteFile(config.OIDC.PublicKeyPath, encoded, 0644)
-		if err != nil {
-			return nil, err
-		}
-	} else if err != nil {
-		return nil, fmt.Errorf("failed to check public key: %w", err)
+	der := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
+	if der == nil {
+		return nil, errors.New("failed to marshal public key")
+	}
+	encoded := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: der,
+	})
+	err = os.WriteFile(config.OIDC.PublicKeyPath, encoded, 0644)
+	if err != nil {
+		return nil, err
 	}
 
 	// We will reorganize the client into a map with the client ID as the key

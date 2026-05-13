@@ -146,7 +146,7 @@ func (controller *OIDCController) Authorize(c *gin.Context) {
 	client, ok := controller.oidc.GetClient(req.ClientID)
 
 	if !ok {
-		controller.authorizeError(c, err, "Client not found", "The client ID is invalid", "", "", "")
+		controller.authorizeError(c, fmt.Errorf("client not found: %s", req.ClientID), "Client not found", "The client ID is invalid", "", "", "")
 		return
 	}
 

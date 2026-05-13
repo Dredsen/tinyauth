@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -121,7 +120,6 @@ type OIDCService struct {
 
 	clients    map[string]model.OIDCClientConfig
 	privateKey *rsa.PrivateKey
-	publicKey  crypto.PublicKey
 	issuer     string
 }
 
@@ -194,17 +192,9 @@ func NewOIDCService(
 		}
 	}
 
-	var publicKey crypto.PublicKey
-
-	fpublicKey, err := os.ReadFile(config.OIDC.PublicKeyPath)
-
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("failed to read public key: %w", err)
-	}
-
+	_, err = os.Stat(config.OIDC.PublicKeyPath)
 	if errors.Is(err, os.ErrNotExist) {
-		publicKey = privateKey.Public()
-		der := x509.MarshalPKCS1PublicKey(publicKey.(*rsa.PublicKey))
+		der := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
 		if der == nil {
 			return nil, errors.New("failed to marshal public key")
 		}
@@ -217,26 +207,8 @@ func NewOIDCService(
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		block, _ := pem.Decode(fpublicKey)
-		if block == nil {
-			return nil, errors.New("failed to decode public key")
-		}
-		log.App.Trace().Str("type", block.Type).Msg("Loaded public key")
-		switch block.Type {
-		case "RSA PUBLIC KEY":
-			publicKey, err = x509.ParsePKCS1PublicKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse public key: %w", err)
-			}
-		case "PUBLIC KEY":
-			publicKey, err = x509.ParsePKIXPublicKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse public key: %w", err)
-			}
-		default:
-			return nil, fmt.Errorf("unsupported public key type: %s", block.Type)
-		}
+	} else if err != nil {
+		return nil, fmt.Errorf("failed to check public key: %w", err)
 	}
 
 	// We will reorganize the client into a map with the client ID as the key
@@ -271,7 +243,6 @@ func NewOIDCService(
 
 		clients:    clients,
 		privateKey: privateKey,
-		publicKey:  publicKey,
 		issuer:     issuer,
 	}
 

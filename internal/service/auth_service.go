@@ -804,11 +804,17 @@ func (auth *AuthService) ensureOAuthSessionLimit() {
 
 func (auth *AuthService) lockdownMode() {
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	auth.lockdownCtx = ctx
-	auth.lockdownCancelFunc = cancel
 
 	auth.loginMutex.Lock()
+
+	if auth.lockdown != nil && auth.lockdown.Active {
+		auth.loginMutex.Unlock()
+		cancel()
+		return
+	}
+
+	auth.lockdownCtx = ctx
+	auth.lockdownCancelFunc = cancel
 
 	auth.log.App.Warn().Msg("Too many failed login attempts, entering lockdown mode")
 
@@ -822,9 +828,11 @@ func (auth *AuthService) lockdownMode() {
 	auth.loginAttempts = make(map[string]*LoginAttempt)
 
 	timer := time.NewTimer(time.Until(auth.lockdown.ActiveUntil))
-	defer timer.Stop()
 
 	auth.loginMutex.Unlock()
+
+	defer cancel()
+	defer timer.Stop()
 
 	select {
 	case <-timer.C:

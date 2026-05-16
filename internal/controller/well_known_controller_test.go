@@ -57,7 +57,8 @@ func TestWellKnownController(t *testing.T) {
 					TokenEndpointAuthMethodsSupported:      []string{"client_secret_basic", "client_secret_post"},
 					ClaimsSupported:                        []string{"sub", "updated_at", "name", "preferred_username", "email", "email_verified", "groups", "phone_number", "phone_number_verified", "address", "given_name", "family_name", "middle_name", "nickname", "profile", "picture", "website", "gender", "birthdate", "zoneinfo", "locale"},
 					ServiceDocumentation:                   "https://tinyauth.app/docs/guides/oidc",
-					RequestParameterSupported: false,
+					RequestParameterSupported:              true,
+					RequestObjectSigningAlgValuesSupported: []string{"none"},
 				}
 
 				assert.Equal(t, expected, res)
